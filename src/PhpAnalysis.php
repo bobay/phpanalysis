@@ -1071,6 +1071,56 @@ class PhpAnalysis
         $arr['words'] = $this->GetFinallyKeywordsArr($num);
         return $arr;
     }
+
+    public function GetTfidfKeywords($num = 10) {
+        $keytf = array();
+        $word = $this->GetFinallyKeywordsArr($num);
+        $arr = $this->GetFinallyKeywordsCount();
+        foreach($word as $s => $i) {
+            $key = iconv('utf-8', UCS2, $s);
+            $infos = $this->GetWordInfos($key); //获取词频$infos[0]词性$infos[1];
+            // var_dump($s, $infos);exit;
+            if (!$infos){continue;}
+            $keytf[$s] =abs(($i/$arr['allOkWordsCount']) * log10($infos[0]));
+        } 
+        uasort($keytf, "self::my_sort");
+        return $keytf;
+    }
+
+    public function my_sort($a, $b) {
+        if ($a == $b) return 0;
+        return ($a > $b)?-1:1;
+    } 
+
+    //计算两篇文章的TF-IDF值
+    public static function GetTfidfArr($vec1, $vec2) {
+        $tfIdf = 0;
+        if($vec1 && $vec2 && is_array($vec1) && is_array($vec2)){
+            $tfIdf = self::dotProduct($vec1, $vec2) / (self::absVector($vec1) * self::absVector($vec2));
+        }
+        if($tfIdf){
+            $tfIdf *= 100;
+        }
+        return $tfIdf;
+    }
+
+    public static function dotProduct(array $vec1, array $vec2) {
+        $result = 0;
+        foreach (array_keys($vec1) as $key1) {
+            foreach (array_keys($vec2) as $key2) {
+                if ($key1 === $key2) $result += $vec1[$key1] * $vec2[$key2];
+            }
+        }
+        return $result;
+    }
+        
+    public static function absVector(array $vec) {
+        $result = 0;
+        foreach (array_values($vec) as $value) {
+            $result += $value * $value;
+        }
+        return sqrt($result);
+    }
      
     /**
      * 获得保存目标编码

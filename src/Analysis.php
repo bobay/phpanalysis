@@ -11,6 +11,7 @@ class Analysis
 		PhpAnalysis::$loadInit = false;
 		$pa = new PhpAnalysis('utf-8', 'utf-8', false);
 		$pa->LoadDict();
+		$content = strip_tags($content);
 		$pa->SetSource($content);
 		$pa->StartAnalysis( false );
 		$type = (int) $type;
@@ -29,6 +30,9 @@ class Analysis
 				break;
 			case 5:
 				$tags = $pa->GetFinallyKeywordsStat($num);
+				break;
+			case 6:
+				$tags = $pa->GetTfidfKeywords($num);
 				break;
 			default:
 				$tags = $pa->GetFinallyKeywords($num-1);
