@@ -989,6 +989,33 @@ class PhpAnalysis
         arsort( $rearr );
         return $rearr;
      }
+
+     /**
+     * 获取过滤后的索引hash数组
+     * @return string
+     */
+    public function GetFinallyIndexFilter()
+    {
+        $arr = $this->GetFinallyIndex();
+        $okArr = [];
+        foreach( $arr as $k => $v )
+        {
+           //排除长度为1的词
+           if( strlen($k)==1 ) {
+               continue;
+           }
+           //排除长度为2的非英文词
+           elseif( strlen($k)==2 && preg_match('/[^0-9a-zA-Z]/', $k) ) {
+               continue;
+           }
+           //排除单个中文字
+           elseif( strlen($k) < 4 && !preg_match('/[a-zA-Z]/', $k)) {
+               continue;
+           }
+           $okArr[$k] = $v;
+        }
+        return $okArr;
+    }
      
     /**
      * 获取最终关键字(返回用 "," 间隔的关键字)
@@ -997,29 +1024,53 @@ class PhpAnalysis
      public function GetFinallyKeywords( $num = 10 )
      {
          $n = 0;
-         $arr = $this->GetFinallyIndex();
+         $arr = $this->GetFinallyIndexFilter();
          $okstr = '';
          foreach( $arr as $k => $v )
          {
-            //排除长度为1的词
-            if( strlen($k)==1 ) {
-                continue;
-            }
-            //排除长度为2的非英文词
-            elseif( strlen($k)==2 && preg_match('/[^0-9a-zA-Z]/', $k) ) {
-                continue;
-            
-            }
-            //排除单个中文字
-            elseif( strlen($k) < 4 && !preg_match('/[a-zA-Z]/', $k)) {
-                continue;
-            }
             $okstr .= ($okstr=='' ? $k : ','.$k);
             $n++;
             if( $n > $num ) break;
          }
          return $okstr;
      }
+
+     /**
+     * 获取最终关键字数组(包含出现的次数，方便计算TF-IDF)
+     * @return string
+     */
+    public function GetFinallyKeywordsArr( $num = 10 )
+    {
+        $arr = $this->GetFinallyIndexFilter();
+        $okArr = array_slice($arr, 0, $num);
+        return $okArr;
+    }
+
+     /**
+     * 获取最终关键字统计数组(包含出现的次数，方便计算TF-IDF)
+     * @return string
+     */
+    public function GetFinallyKeywordsCount()
+    {
+        $arr = $this->GetFinallyIndexFilter();
+        $allCount = 0;
+        foreach( $arr as $k => $v )
+        {
+           $allCount += $v;
+        }
+        return ['allOkWordsCount' => count($arr), 'allOkWordsSum' => $allCount];
+    }
+
+    /**
+     * 获取最终关键字统计数组(包含出现的次数，总次数)
+     * @return string
+     */
+    public function GetFinallyKeywordsStat($num)
+    {
+        $arr = $this->GetFinallyKeywordsCount();
+        $arr['words'] = $this->GetFinallyKeywordsArr($num);
+        return $arr;
+    }
      
     /**
      * 获得保存目标编码
