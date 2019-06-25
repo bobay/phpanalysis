@@ -11,7 +11,8 @@ class Analysis
 		PhpAnalysis::$loadInit = false;
 		$pa = new PhpAnalysis('utf-8', 'utf-8', false);
 		$pa->LoadDict();
-		$content = strip_tags($content);
+		$content = strip_tags($content); //过滤html标签
+		$content = html_entity_decode($content);
 		$pa->SetSource($content);
 		$pa->StartAnalysis( false );
 		$type = (int) $type;
